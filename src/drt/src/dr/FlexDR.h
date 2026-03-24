@@ -11,6 +11,7 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -145,6 +146,11 @@ class FlexDR
   // maxSpacing fix
   void fixMaxSpacing();
 
+  const std::unordered_map<std::string, double>& getNetRouteTimes() const
+  {
+    return net_route_time_ms_;
+  }
+
  private:
   IterationsControl control_;
   TritonRoute* router_;
@@ -172,6 +178,9 @@ class FlexDR
   bool increaseClipsize_;
   float clipSizeInc_;
   int iter_;
+
+  // per-net accumulated route timing across all workers and iterations
+  std::unordered_map<std::string, double> net_route_time_ms_;
 
   // others
   void initFromTA();
@@ -465,6 +474,11 @@ class FlexDRWorker
   frCoord getHalfViaEncArea(frMIdx z, bool isLayer1, frNonDefaultRule* ndr);
   bool isSkipRouting() const { return skipRouting_; }
 
+  const std::unordered_map<std::string, double>& getNetRouteTimes() const
+  {
+    return net_route_time_ms_;
+  }
+
   enum ModCostType
   {
     subRouteShape,
@@ -549,6 +563,9 @@ class FlexDRWorker
   bool isCongested_{false};
   bool save_updates_{false};
   int worker_id_{0};
+
+  // per-net route timing (accumulated within this worker)
+  std::unordered_map<std::string, double> net_route_time_ms_;
 
   // hellpers
   bool isRoutePatchWire(const frPatchWire* pwire) const;

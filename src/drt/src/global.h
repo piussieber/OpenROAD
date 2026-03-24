@@ -102,6 +102,10 @@ struct RouterConfiguration
 
   // unidirectional layers
   std::unordered_set<odb::dbTechLayer*> unidirectional_layers_;
+
+  // per-net route stats
+  bool NET_ROUTE_STATS = false;
+  std::string NET_ROUTE_STATS_FILE;
 };
 
 constexpr int DIRBITSIZE = 3;

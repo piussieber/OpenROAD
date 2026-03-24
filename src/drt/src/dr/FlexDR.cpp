@@ -804,6 +804,11 @@ void FlexDR::endWorkersBatch(
     if (worker->isCongested()) {
       increaseClipsize_ = true;
     }
+    if (router_cfg_->NET_ROUTE_STATS) {
+      for (const auto& [name, ms] : worker->getNetRouteTimes()) {
+        net_route_time_ms_[name] += ms;
+      }
+    }
   }
   workers_batch.clear();
 }

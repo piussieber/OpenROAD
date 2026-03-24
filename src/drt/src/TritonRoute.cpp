@@ -4,6 +4,7 @@
 #include "drt/TritonRoute.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -714,13 +715,70 @@ void TritonRoute::endFR()
   if (router_cfg_->SINGLE_STEP_DR) {
     dr_->end(/* done */ true);
   }
+  if (router_cfg_->NET_ROUTE_STATS && dr_) {
+    net_route_time_ms_ = dr_->getNetRouteTimes();
+  }
   dr_.reset();
   io::Writer writer(getDesign(), logger_);
   writer.updateDb(db_, router_cfg_.get());
 
   num_drvs_ = design_->getTopBlock()->getNumMarkers();
 
+  if (router_cfg_->NET_ROUTE_STATS) {
+    reportNetRouteStats();
+  }
+
   repairPDNVias();
+}
+
+void TritonRoute::reportNetRouteStats()
+{
+  auto* dbBlock = db_->getChip()->getBlock();
+  const std::string& statsFile = router_cfg_->NET_ROUTE_STATS_FILE;
+
+  std::ofstream csv_file;
+  if (!statsFile.empty()) {
+    csv_file.open(statsFile);
+    if (!csv_file.is_open()) {
+      logger_->error(DRT, 630, "Cannot open net route stats file: {}", statsFile);
+      return;
+    }
+    csv_file << "net_name,route_time_ms,routed_length_dbu\n";
+  }
+
+  for (auto* dbNet : dbBlock->getNets()) {
+    const std::string& name = dbNet->getName();
+    auto it = net_route_time_ms_.find(name);
+    if (it == net_route_time_ms_.end()) {
+      continue;
+    }
+    double time_ms = it->second;
+    int64_t length = 0;
+    if (!dbNet->getSigType().isSupply()) {
+      auto* wire = dbNet->getWire();
+      if (wire != nullptr) {
+        length = static_cast<int64_t>(wire->getLength());
+      }
+    } else {
+      // Supply nets: sum SWire segment lengths
+      for (auto* swire : dbNet->getSWires()) {
+        for (auto* seg : swire->getWires()) {
+          if (!seg->isVia()) {
+            const odb::Rect box = seg->getBox();
+            length += box.maxDXDY();
+          }
+        }
+      }
+    }
+    if (!statsFile.empty()) {
+      csv_file << name << "," << time_ms << "," << length << "\n";
+    } else {
+      logger_->report("Net {} route_time={:.3f}ms routed_length={}",
+                      name,
+                      time_ms,
+                      length);
+    }
+  }
 }
 
 void TritonRoute::repairPDNVias()
@@ -728,7 +786,6 @@ void TritonRoute::repairPDNVias()
   if (router_cfg_->REPAIR_PDN_LAYER_NAME.empty()) {
     return;
   }
-
   auto dbBlock = db_->getChip()->getBlock();
   auto pdnLayer
       = design_->getTech()->getLayer(router_cfg_->REPAIR_PDN_LAYER_NAME);
@@ -1317,6 +1374,8 @@ void TritonRoute::setParams(const ParamStruct& params)
   router_cfg_->SAVE_GUIDE_UPDATES = params.saveGuideUpdates;
   router_cfg_->REPAIR_PDN_LAYER_NAME = params.repairPDNLayerName;
   router_cfg_->MAX_THREADS = params.num_threads;
+  router_cfg_->NET_ROUTE_STATS_FILE = params.netRouteStatsFile;
+  router_cfg_->NET_ROUTE_STATS = !params.netRouteStatsFile.empty();
 }
 
 void TritonRoute::addWorkerResults(
