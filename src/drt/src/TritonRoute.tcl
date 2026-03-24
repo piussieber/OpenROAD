@@ -29,6 +29,7 @@ sta::define_cmd_args "detailed_route" {
     [-save_guide_updates]
     [-repair_pdn_vias layer]
     [-single_step_dr]
+    [-net_route_stats filename]
 }
 
 proc detailed_route { args } {
@@ -37,7 +38,8 @@ proc detailed_route { args } {
       -db_process_node -droute_end_iter -via_in_pin_bottom_layer \
       -via_in_pin_top_layer -via_access_layer -or_seed -or_k -bottom_routing_layer \
       -top_routing_layer -verbose -remote_host -remote_port -shared_volume \
-      -cloud_size -min_access_points -repair_pdn_vias -drc_report_iter_step} \
+      -cloud_size -min_access_points -repair_pdn_vias -drc_report_iter_step \
+      -net_route_stats} \
     flags {-disable_via_gen -distributed -clean_patches -no_pin_access \
            -single_step_dr -save_guide_updates}
   sta::check_argc_eq0 "detailed_route" $args
@@ -167,12 +169,18 @@ proc detailed_route { args } {
   } else {
     set min_access_points -1
   }
+  if { [info exists keys(-net_route_stats)] } {
+    set net_route_stats $keys(-net_route_stats)
+  } else {
+    set net_route_stats ""
+  }
   drt::detailed_route_cmd $output_maze $output_drc $output_cmap \
     $output_guide_coverage $db_process_node $enable_via_gen $droute_end_iter \
     $via_in_pin_bottom_layer $via_in_pin_top_layer \
     $via_access_layer $or_seed $or_k $verbose \
     $clean_patches $no_pin_access $single_step_dr $min_access_points \
-    $save_guide_updates $repair_pdn_vias $drc_report_iter_step
+    $save_guide_updates $repair_pdn_vias $drc_report_iter_step \
+    $net_route_stats
 }
 
 proc detailed_route_num_drvs { args } {
