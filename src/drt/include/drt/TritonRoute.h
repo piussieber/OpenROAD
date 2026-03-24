@@ -10,6 +10,7 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -79,6 +80,7 @@ struct ParamStruct
   bool saveGuideUpdates = false;
   std::string repairPDNLayerName;
   int num_threads;
+  std::string netRouteStatsFile;
 };
 
 class TritonRoute
@@ -221,6 +223,8 @@ class TritonRoute
   void getDRCMarkers(std::list<std::unique_ptr<frMarker>>& markers,
                      const odb::Rect& requiredDrcBox);
   void repairPDNVias();
+  void reportNetRouteStats();
+  std::unordered_map<std::string, double> net_route_time_ms_;
   friend class FlexDR;
 };
 

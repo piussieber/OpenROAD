@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
@@ -1937,7 +1938,16 @@ void FlexDRWorker::route_queue_main(std::queue<RouteQueueEntry>& rerouteQueue)
       // route
       mazeNetInit(net);
       std::vector<FlexMazeIdx> paths;
+      const auto t0 = router_cfg_->NET_ROUTE_STATS
+                          ? std::chrono::steady_clock::now()
+                          : std::chrono::steady_clock::time_point{};
       bool isRouted = routeNet(net, paths);
+      if (router_cfg_->NET_ROUTE_STATS) {
+        const auto t1 = std::chrono::steady_clock::now();
+        const double ms
+            = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        net_route_time_ms_[net->getFrNet()->getName()] += ms;
+      }
       if (!isRouted) {
         if (router_cfg_->OUT_MAZE_FILE == std::string("")) {
           if (router_cfg_->VERBOSE > 0) {
