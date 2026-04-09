@@ -100,6 +100,8 @@ class MainWindow : public QMainWindow, public odb::dbDatabaseObserver
 
   void setTitle(const std::string& title);
 
+  odb::Point getMouseLocation() const { return mouse_location_; }
+
   // Return the selected set
   const SelectionSet& selection();
 
@@ -379,6 +381,7 @@ class MainWindow : public QMainWindow, public odb::dbDatabaseObserver
   QShortcut* enable_developer_mode_;
 
   QLabel* location_;
+  odb::Point mouse_location_;
 
   // created button actions
   std::map<const std::string, std::unique_ptr<QAction>> buttons_;

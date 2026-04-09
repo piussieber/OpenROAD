@@ -78,6 +78,18 @@ bool enabled()
   return gui::Gui::enabled();
 }
 
+const std::string getMouseLocation()
+{
+  auto gui = gui::Gui::get();
+  auto block = get_block();
+  const int dbu_per_micron = block->getDbUnitsPerMicron();
+  const odb::Point mouse_location = gui->getMouseLocation();
+
+  const double x = static_cast<double>(mouse_location.x()) / dbu_per_micron;
+  const double y = static_cast<double>(mouse_location.y()) / dbu_per_micron;
+  return std::to_string(x) + " " + std::to_string(y);
+}
+
 void
 selection_add_net(const char* name)
 {

@@ -1103,6 +1103,9 @@ std::string MainWindow::requestUserInput(const QString& title,
 
 void MainWindow::setLocation(int x, int y)
 {
+  mouse_location_.setX(x);
+  mouse_location_.setY(y);
+
   QString location;
   location += QString::fromStdString(convertDBUToString(x, false));
   location += ", ";

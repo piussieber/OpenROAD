@@ -1099,6 +1099,15 @@ std::string Gui::getMainWindowTitle()
   return main_window_title_;
 }
 
+odb::Point Gui::getMouseLocation()
+{
+  if (!main_window) {
+    return odb::Point(0, 0);
+  }
+
+  return main_window->getMouseLocation();
+}
+
 Renderer::~Renderer()
 {
   gui::Gui::get()->unregisterRenderer(this);

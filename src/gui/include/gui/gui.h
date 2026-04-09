@@ -895,6 +895,7 @@ class Gui
 
   void setMainWindowTitle(const std::string& title);
   std::string getMainWindowTitle();
+  odb::Point getMouseLocation();
 
   void selectHelp(const std::string& item);
   void selectChart(const std::string& name);
