@@ -103,6 +103,7 @@ class TritonRoute
 
   int main();
   void endFR();
+  void updateDB();
   void pinAccess(const std::vector<odb::dbInst*>& target_insts
                  = std::vector<odb::dbInst*>());
   void stepDR(int size,

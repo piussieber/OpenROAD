@@ -731,6 +731,11 @@ void TritonRoute::endFR()
   repairPDNVias();
 }
 
+void TritonRoute::updateDB(){
+  io::Writer writer(getDesign(), logger_);
+  writer.updateDb(db_, router_cfg_.get());
+}
+
 void TritonRoute::reportNetRouteStats()
 {
   auto* dbBlock = db_->getChip()->getBlock();

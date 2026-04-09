@@ -219,6 +219,12 @@ void step_end()
   router->endFR();
 }
 
+void update_db()
+{
+  auto* router = ord::OpenRoad::openRoad()->getTritonRoute();
+  router->updateDB();
+}
+
 void check_drc_cmd(const char* drc_file, int x1, int y1, int x2, int y2, const char* marker_name)
 {
   auto* router = ord::OpenRoad::openRoad()->getTritonRoute();
