@@ -807,6 +807,11 @@ void FlexDR::endWorkersBatch(
     if (router_cfg_->NET_ROUTE_STATS) {
       for (const auto& [name, ms] : worker->getNetRouteTimes()) {
         net_route_time_ms_[name] += ms;
+        net_iter_time_ms_[iter_][name] += ms;
+      }
+      for (const auto& [name, count] : worker->getNetTouchCounts()) {
+        net_touch_count_[name] += count;
+        net_iter_touch_count_[iter_][name] += count;
       }
     }
   }
