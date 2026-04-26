@@ -154,6 +154,23 @@ class FlexDR
     return net_route_time_ms_;
   }
 
+  const std::unordered_map<std::string, int>& getNetTouchCounts() const
+  {
+    return net_touch_count_;
+  }
+
+  const std::map<int, std::unordered_map<std::string, double>>&
+  getNetIterTimes() const
+  {
+    return net_iter_time_ms_;
+  }
+
+  const std::map<int, std::unordered_map<std::string, int>>&
+  getNetIterTouchCounts() const
+  {
+    return net_iter_touch_count_;
+  }
+
  private:
   IterationsControl control_;
   TritonRoute* router_;
@@ -184,6 +201,11 @@ class FlexDR
 
   // per-net accumulated route timing across all workers and iterations
   std::unordered_map<std::string, double> net_route_time_ms_;
+  // per-net accumulated touch count across all workers and iterations
+  std::unordered_map<std::string, int> net_touch_count_;
+  // per-iteration per-net timing and touch counts
+  std::map<int, std::unordered_map<std::string, double>> net_iter_time_ms_;
+  std::map<int, std::unordered_map<std::string, int>> net_iter_touch_count_;
 
   // others
   void initFromTA();
@@ -482,6 +504,11 @@ class FlexDRWorker
     return net_route_time_ms_;
   }
 
+  const std::unordered_map<std::string, int>& getNetTouchCounts() const
+  {
+    return net_touch_count_;
+  }
+
   enum ModCostType
   {
     subRouteShape,
@@ -569,6 +596,8 @@ class FlexDRWorker
 
   // per-net route timing (accumulated within this worker)
   std::unordered_map<std::string, double> net_route_time_ms_;
+  // per-net touch count (accumulated within this worker)
+  std::unordered_map<std::string, int> net_touch_count_;
 
   // hellpers
   bool isRoutePatchWire(const frPatchWire* pwire) const;

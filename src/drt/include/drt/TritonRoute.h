@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -224,6 +225,9 @@ class TritonRoute
   void repairPDNVias();
   void reportNetRouteStats();
   std::unordered_map<std::string, double> net_route_time_ms_;
+  std::unordered_map<std::string, int> net_touch_count_;
+  std::map<int, std::unordered_map<std::string, double>> net_iter_time_ms_;
+  std::map<int, std::unordered_map<std::string, int>> net_iter_touch_count_;
   friend class FlexDR;
 };
 

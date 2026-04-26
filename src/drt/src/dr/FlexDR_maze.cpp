@@ -1942,7 +1942,9 @@ void FlexDRWorker::route_queue_main(std::queue<RouteQueueEntry>& rerouteQueue)
         const auto t1 = std::chrono::steady_clock::now();
         const double ms
             = std::chrono::duration<double, std::milli>(t1 - t0).count();
-        net_route_time_ms_[net->getFrNet()->getName()] += ms;
+        const std::string& net_name = net->getFrNet()->getName();
+        net_route_time_ms_[net_name] += ms;
+        net_touch_count_[net_name]++;
       }
       if (!isRouted) {
         if (router_cfg_->OUT_MAZE_FILE == std::string("")) {

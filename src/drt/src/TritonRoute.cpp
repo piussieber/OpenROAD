@@ -717,6 +717,9 @@ void TritonRoute::endFR()
   }
   if (router_cfg_->NET_ROUTE_STATS && dr_) {
     net_route_time_ms_ = dr_->getNetRouteTimes();
+    net_touch_count_ = dr_->getNetTouchCounts();
+    net_iter_time_ms_ = dr_->getNetIterTimes();
+    net_iter_touch_count_ = dr_->getNetIterTouchCounts();
   }
   dr_.reset();
   io::Writer writer(getDesign(), logger_);
@@ -741,6 +744,13 @@ void TritonRoute::reportNetRouteStats()
   auto* dbBlock = db_->getChip()->getBlock();
   const std::string& statsFile = router_cfg_->NET_ROUTE_STATS_FILE;
 
+  // Collect all iteration indices (sorted)
+  std::vector<int> iters;
+  for (const auto& [iter, _] : net_iter_time_ms_) {
+    iters.push_back(iter);
+  }
+  std::sort(iters.begin(), iters.end());
+
   std::ofstream csv_file;
   if (!statsFile.empty()) {
     csv_file.open(statsFile);
@@ -748,7 +758,12 @@ void TritonRoute::reportNetRouteStats()
       logger_->error(DRT, 630, "Cannot open net route stats file: {}", statsFile);
       return;
     }
-    csv_file << "net_name,route_time_ms,routed_length_dbu\n";
+    csv_file << "net_name,total_route_time_ms,total_touch_count,routed_length_dbu";
+    for (int iter : iters) {
+      csv_file << ",iter_" << iter << "_time_ms"
+               << ",iter_" << iter << "_touch_count";
+    }
+    csv_file << "\n";
   }
 
   for (auto* dbNet : dbBlock->getNets()) {
@@ -758,6 +773,11 @@ void TritonRoute::reportNetRouteStats()
       continue;
     }
     double time_ms = it->second;
+    int touch_count = 0;
+    auto tc_it = net_touch_count_.find(name);
+    if (tc_it != net_touch_count_.end()) {
+      touch_count = tc_it->second;
+    }
     int64_t length = 0;
     if (!dbNet->getSigType().isSupply()) {
       auto* wire = dbNet->getWire();
@@ -776,12 +796,36 @@ void TritonRoute::reportNetRouteStats()
       }
     }
     if (!statsFile.empty()) {
-      csv_file << name << "," << time_ms << "," << length << "\n";
+      csv_file << name << "," << time_ms << "," << touch_count << ","
+               << length;
+      for (int iter : iters) {
+        double iter_time = 0.0;
+        int iter_touch = 0;
+        auto iter_t_it = net_iter_time_ms_.find(iter);
+        if (iter_t_it != net_iter_time_ms_.end()) {
+          auto n_it = iter_t_it->second.find(name);
+          if (n_it != iter_t_it->second.end()) {
+            iter_time = n_it->second;
+          }
+        }
+        auto iter_c_it = net_iter_touch_count_.find(iter);
+        if (iter_c_it != net_iter_touch_count_.end()) {
+          auto n_it = iter_c_it->second.find(name);
+          if (n_it != iter_c_it->second.end()) {
+            iter_touch = n_it->second;
+          }
+        }
+        csv_file << "," << iter_time << "," << iter_touch;
+      }
+      csv_file << "\n";
     } else {
-      logger_->report("Net {} route_time={:.3f}ms routed_length={}",
-                      name,
-                      time_ms,
-                      length);
+      logger_->report(
+          "Net {} total_route_time={:.3f}ms total_touch_count={} "
+          "routed_length={}",
+          name,
+          time_ms,
+          touch_count,
+          length);
     }
   }
 }
