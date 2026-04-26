@@ -86,6 +86,9 @@ class FlexDR
     RipUpMode ripupMode;
     bool followGuide;
     bool isEqualIgnoringSizeAndOffset(const SearchRepairArgs& other) const;
+    bool forceStubbornFlow = false;
+    bool forceOptimizationFlow = false;
+
   };
   struct IterationProgress
   {

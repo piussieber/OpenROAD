@@ -1277,9 +1277,19 @@ void FlexDR::searchRepair(const SearchRepairArgs& args)
   IterationProgress iter_prog;
   auto block = getDesign()->getTopBlock();
   const auto num_drvs = block->getNumMarkers();
-  const bool stubborn_flow = num_drvs <= 11 && ripupMode != RipUpMode::ALL
+  const bool force_stubborn_flow = args.forceStubbornFlow;
+  const bool force_optimization_flow = args.forceOptimizationFlow;
+  if(force_stubborn_flow && force_optimization_flow) {
+    logger_->debug(DRT, "custom_pius", "Both stubborn flow and optimization flow are forced. Defaulting to stubborn flow.");
+  }
+  if(force_stubborn_flow) {
+    logger_->debug(DRT, "custom_pius", "Stubborn flow is forced.");
+  }else if(force_optimization_flow) {
+    logger_->debug(DRT, "custom_pius", "Optimization flow is forced.");
+  }
+  const bool stubborn_flow = force_stubborn_flow || (!force_optimization_flow && num_drvs <= 11 && ripupMode != RipUpMode::ALL
                              && ripupMode != RipUpMode::INCR
-                             && !control_.fixing_max_spacing;
+                             && !control_.fixing_max_spacing);
   if (router_cfg_->VERBOSE > 0) {
     printIteration(logger_, iter_, stubborn_flow);
   }
