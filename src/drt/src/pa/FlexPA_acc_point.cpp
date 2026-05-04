@@ -1267,9 +1267,9 @@ bool FlexPA::genPinAccessCostBounded(
     graphics_->setAPs(new_aps, lower_type, upper_type);
   }
   for (auto& ap : new_aps) {
-    if (!ap->hasAccess()) {
-      continue;
-    }
+    //if (!ap->hasAccess()) {
+    //  continue;
+    //}
     // for stdcell, add (i) planar access if layer_num != VIA_ACCESS_LAYERNUM,
     // and (ii) access if exist access for macro, allow pure planar ap
     if (is_std_cell_pin) {
@@ -1390,6 +1390,7 @@ int FlexPA::genPinAccess(T* pin, frInstTerm* inst_term)
 
   bool enough_access_points = false;
 
+  logger_->report("Generating APs for Pin {}.", pin->getTerm()->getName());
   for (auto upper : {frAccessPointEnum::OnGrid,
                      frAccessPointEnum::HalfGrid,
                      frAccessPointEnum::Center,
@@ -1459,6 +1460,7 @@ int FlexPA::genPinAccess(T* pin, frInstTerm* inst_term)
   for (auto& ap : aps) {
     pin->getPinAccess(pin_access_idx)->addAccessPoint(std::move(ap));
   }
+  logger_->report("Generated {} APs for Pin {}.", aps.size(), pin->getTerm()->getName());
   return aps.size();
 }
 
@@ -1487,6 +1489,7 @@ void FlexPA::genInstAccessPoints(frInst* unique_inst)
 
 void FlexPA::genAllAccessPoints()
 {
+  logger_->report("Generating access points for instances.");
   ProfileTask profile("PA:point");
   int pin_count = 0;
 
@@ -1503,6 +1506,7 @@ void FlexPA::genAllAccessPoints()
         continue;
       }
 
+      logger_->report("Generating access points for {}", candidate_inst->getName());
       genInstAccessPoints(candidate_inst);
       if (router_cfg_->VERBOSE <= 0) {
         continue;
@@ -1536,10 +1540,8 @@ void FlexPA::genAllAccessPoints()
           continue;
         }
         auto net = term->getNet();
-        if (!net || net->isSpecial()) {
-          continue;
-        }
         int n_aps = 0;
+        logger_->report("Generating access points for I/O {}.", term->getName());
         for (auto& pin : term->getPins()) {
           n_aps += genPinAccess(pin.get(), nullptr);
         }

@@ -370,6 +370,7 @@ bool FlexPA::isSkipInstTermLocal(frInstTerm* in)
   if (term->getType().isSupply()) {
     return true;
   }
+  return false;
   auto in_net = in->getNet();
   if (in_net && in_net->isConnectedByAbutment()) {
     return true;
